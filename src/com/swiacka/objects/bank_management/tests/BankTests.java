@@ -1,0 +1,43 @@
+package com.company.objects.bank_management.tests;
+
+import com.company.objects.bank_management.models.Bank;
+import com.company.objects.bank_management.models.Transaction;
+import com.company.objects.bank_management.models.TransactionType;
+import com.company.objects.bank_management.models.account.Chequing;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+
+import java.math.BigDecimal;
+
+public class BankTests {
+    Bank bank;
+
+    @Before
+    public void setup() {
+        bank = new Bank();
+        bank.addAccount(new Chequing("f84c43f4-a634-4c57-a644-7602f8840870", "Michael Scott", new BigDecimal("1524.51")));
+    }
+
+    @Test
+    public void successfulTransaction() {
+        this.bank.executeTransaction(new Transaction(TransactionType.WITHDRAW, 1546905600, "f84c43f4-a634-4c57-a644-7602f8840870", new BigDecimal("624.99")));
+        this.bank.executeTransaction(new Transaction(TransactionType.DEPOSIT, 1578700800, "f84c43f4-a634-4c57-a644-7602f8840870", new BigDecimal("441.93")));
+        Assertions.assertEquals(2, bank.getTransactions("f84c43f4-a634-4c57-a644-7602f8840870").length);
+    }
+
+    @Test
+    public void failedTransaction() {
+        this.bank.executeTransaction(new Transaction(TransactionType.WITHDRAW, 1546905600, "f84c43f4-a634-4c57-a644-7602f8840870", new BigDecimal("10000000")));
+        Assertions.assertEquals(0, bank.getTransactions("f84c43f4-a634-4c57-a644-7602f8840870").length);
+    }
+
+    @Test
+    public void taxDeduction() {
+        this.bank.executeTransaction(new Transaction(TransactionType.DEPOSIT, 1578700800, "f84c43f4-a634-4c57-a644-7602f8840870", new BigDecimal("4000")));
+        this.bank.executeTransaction(new Transaction(TransactionType.WITHDRAW, 1578700800, "f84c43f4-a634-4c57-a644-7602f8840870", new BigDecimal("500")));
+
+        this.bank.deductTaxes();
+        Assertions.assertEquals(new BigDecimal("4949.51"), bank.getAccount("f84c43f4-a634-4c57-a644-7602f8840870").getBalance());
+    }
+}
